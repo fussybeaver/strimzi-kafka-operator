@@ -72,6 +72,7 @@ public class AvailabilityVerifier {
         producerProperties.setProperty(ProducerConfig.MAX_BLOCK_MS_CONFIG, "1000");
         producerProperties.setProperty(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         producerProperties.setProperty(CommonClientConfigs.CLIENT_ID_CONFIG, userName + "-producer");
+        producerProperties.put(ProducerConfig.ACKS_CONFIG, "all");
 
         consumerProperties = new Properties();
         consumerProperties.setProperty(ConsumerConfig.GROUP_ID_CONFIG,
@@ -82,6 +83,7 @@ public class AvailabilityVerifier {
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
         consumerProperties.setProperty(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         consumerProperties.setProperty(CommonClientConfigs.CLIENT_ID_CONFIG, userName + "-consumer");
+        consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         try {
             String tsPassword = "foo";
@@ -212,6 +214,7 @@ public class AvailabilityVerifier {
      * Start sending and receiving messages.
      */
     public void start() {
+        LOGGER.info("Starting sender and receiver...");
         if (go) {
             throw new IllegalStateException();
         }
@@ -261,6 +264,7 @@ public class AvailabilityVerifier {
             while (go) {
                 try {
                     ConsumerRecords<Long, Long> records = consumer.poll(Duration.ofSeconds(1));
+                    LOGGER.info(records.count());
                     long t0 = System.nanoTime();
                     received += records.count();
                     for (ConsumerRecord<Long, Long> record : records) {
@@ -280,6 +284,7 @@ public class AvailabilityVerifier {
         this.startTime = System.currentTimeMillis();
         this.sender.start();
         this.receiver.start();
+        LOGGER.info("Sender and receiver started");
     }
 
     private void incrementErrCount(Exception error, Map<Class, Integer> errors) {
@@ -372,12 +377,15 @@ public class AvailabilityVerifier {
             throw new IllegalStateException();
         }
         Result results = stats();
+
         this.go = false;
         this.sender.join(timeoutLeft(timeoutMs, t0));
         this.sender = null;
         producer.close(timeoutLeft(timeoutMs, t0), TimeUnit.MILLISECONDS);
+
         this.receiver.join(timeoutLeft(timeoutMs, t0));
         this.receiver = null;
+
         consumer.close(Duration.ofMillis(timeoutLeft(timeoutMs, t0)));
         return results;
     }
