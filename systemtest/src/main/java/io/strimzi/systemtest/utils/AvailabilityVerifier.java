@@ -214,7 +214,6 @@ public class AvailabilityVerifier {
      * Start sending and receiving messages.
      */
     public void start() {
-        LOGGER.info("Starting sender and receiver...");
         if (go) {
             throw new IllegalStateException();
         }
@@ -264,7 +263,6 @@ public class AvailabilityVerifier {
             while (go) {
                 try {
                     ConsumerRecords<Long, Long> records = consumer.poll(Duration.ofSeconds(1));
-                    LOGGER.info(records.count());
                     long t0 = System.nanoTime();
                     received += records.count();
                     for (ConsumerRecord<Long, Long> record : records) {
@@ -284,7 +282,6 @@ public class AvailabilityVerifier {
         this.startTime = System.currentTimeMillis();
         this.sender.start();
         this.receiver.start();
-        LOGGER.info("Sender and receiver started");
     }
 
     private void incrementErrCount(Exception error, Map<Class, Integer> errors) {
@@ -377,15 +374,12 @@ public class AvailabilityVerifier {
             throw new IllegalStateException();
         }
         Result results = stats();
-
         this.go = false;
         this.sender.join(timeoutLeft(timeoutMs, t0));
         this.sender = null;
         producer.close(timeoutLeft(timeoutMs, t0), TimeUnit.MILLISECONDS);
-
         this.receiver.join(timeoutLeft(timeoutMs, t0));
         this.receiver = null;
-
         consumer.close(Duration.ofMillis(timeoutLeft(timeoutMs, t0)));
         return results;
     }
