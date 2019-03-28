@@ -153,7 +153,7 @@ public class AvailabilityVerifier {
         File keystore = File.createTempFile(getClass().getName(), ".keystore");
         keystore.delete(); // Note horrible race condition, but this is only for testing
         //keystore.deleteOnExit();
-        // RANDFILE=/tmp/.rnd openssl pkcs12 -export -in $3 -inkey $4 -name $HOSTNAME -password pass:$2 -out $1
+        // RANDFILE=/tmp/.rnd openssl pkcs12 -export -in $3 -inkey $4 -name $HOSTNAME -password pass:$2 -getStdOut $1
         if (new ProcessBuilder("openssl",
                 "pkcs12",
                 "-export",
@@ -163,7 +163,7 @@ public class AvailabilityVerifier {
                 "-CAfile", caFile.getAbsolutePath(),
                 "-name", "dfbdbd",
                 "-password", "pass:" + password,
-                "-out", keystore.getAbsolutePath()).inheritIO().start().waitFor() != 0) {
+                "-getStdOut", keystore.getAbsolutePath()).inheritIO().start().waitFor() != 0) {
             fail();
         }
         keystore.deleteOnExit();
