@@ -72,7 +72,6 @@ public class AvailabilityVerifier {
         producerProperties.setProperty(ProducerConfig.MAX_BLOCK_MS_CONFIG, "1000");
         producerProperties.setProperty(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         producerProperties.setProperty(CommonClientConfigs.CLIENT_ID_CONFIG, userName + "-producer");
-        producerProperties.put(ProducerConfig.ACKS_CONFIG, "all");
 
         consumerProperties = new Properties();
         consumerProperties.setProperty(ConsumerConfig.GROUP_ID_CONFIG,
@@ -83,7 +82,6 @@ public class AvailabilityVerifier {
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
         consumerProperties.setProperty(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         consumerProperties.setProperty(CommonClientConfigs.CLIENT_ID_CONFIG, userName + "-consumer");
-        consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         try {
             String tsPassword = "foo";
@@ -153,7 +151,7 @@ public class AvailabilityVerifier {
         File keystore = File.createTempFile(getClass().getName(), ".keystore");
         keystore.delete(); // Note horrible race condition, but this is only for testing
         //keystore.deleteOnExit();
-        // RANDFILE=/tmp/.rnd openssl pkcs12 -export -in $3 -inkey $4 -name $HOSTNAME -password pass:$2 -getStdOut $1
+        // RANDFILE=/tmp/.rnd openssl pkcs12 -export -in $3 -inkey $4 -name $HOSTNAME -password pass:$2 -out $1
         if (new ProcessBuilder("openssl",
                 "pkcs12",
                 "-export",
@@ -163,7 +161,7 @@ public class AvailabilityVerifier {
                 "-CAfile", caFile.getAbsolutePath(),
                 "-name", "dfbdbd",
                 "-password", "pass:" + password,
-                "-getStdOut", keystore.getAbsolutePath()).inheritIO().start().waitFor() != 0) {
+                "-out", keystore.getAbsolutePath()).inheritIO().start().waitFor() != 0) {
             fail();
         }
         keystore.deleteOnExit();
